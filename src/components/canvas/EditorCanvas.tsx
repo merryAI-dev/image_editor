@@ -1,11 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Stage, Layer, Image as KonvaImage, Line } from 'react-konva';
-import { useAppStore } from '../store/useAppStore';
-import { Button } from './ui/Button';
-import { ZoomIn, ZoomOut, RotateCcw, Download, Eye, EyeOff, Eraser } from 'lucide-react';
-import { cn } from '../utils/cn';
+import { useAppStore } from '../../store/useAppStore';
+import { useBackgroundRemoval } from '../../hooks/useGemini';
+import { Button } from '../ui/Button';
+import { ZoomIn, ZoomOut, RotateCcw, Download, Eye, EyeOff, Eraser, Scissors } from 'lucide-react';
+import { cn } from '../../utils/cn';
 
-export const ImageCanvas: React.FC = () => {
+export const EditorCanvas: React.FC = () => {
   const {
     canvasImage,
     canvasZoom,
@@ -20,8 +21,11 @@ export const ImageCanvas: React.FC = () => {
     selectedTool,
     isGenerating,
     brushSize,
-    setBrushSize
+    setBrushSize,
+    isRemovingBackground
   } = useAppStore();
+
+  const { removeBackground, isRemoving } = useBackgroundRemoval();
 
   const stageRef = useRef<any>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -82,9 +86,6 @@ export const ImageCanvas: React.FC = () => {
     
     setIsDrawing(true);
     const stage = e.target.getStage();
-    const pos = stage.getPointerPosition();
-    
-    // Use Konva's getRelativePointerPosition for accurate coordinates
     const relativePos = stage.getRelativePointerPosition();
     
     // Calculate image bounds on the stage
@@ -105,19 +106,16 @@ export const ImageCanvas: React.FC = () => {
     if (!isDrawing || selectedTool !== 'mask' || !image) return;
     
     const stage = e.target.getStage();
-    const pos = stage.getPointerPosition();
-    
-    // Use Konva's getRelativePointerPosition for accurate coordinates
     const relativePos = stage.getRelativePointerPosition();
-    
+
     // Calculate image bounds on the stage
     const imageX = (stageSize.width / canvasZoom - image.width) / 2;
     const imageY = (stageSize.height / canvasZoom - image.height) / 2;
-    
+
     // Convert to image-relative coordinates
     const relativeX = relativePos.x - imageX;
     const relativeY = relativePos.y - imageY;
-    
+
     // Check if within image bounds
     if (relativeX >= 0 && relativeX <= image.width && relativeY >= 0 && relativeY <= image.height) {
       setCurrentStroke([...currentStroke, relativeX, relativeY]);
@@ -136,6 +134,7 @@ export const ImageCanvas: React.FC = () => {
       id: `stroke-${Date.now()}`,
       points: currentStroke,
       brushSize,
+      color: '#A855F7',
     });
     setCurrentStroke([]);
   };
@@ -198,7 +197,7 @@ export const ImageCanvas: React.FC = () => {
             {selectedTool === 'mask' && (
               <>
                 <div className="flex items-center space-x-2 mr-2">
-                  <span className="text-xs text-gray-400">Brush:</span>
+                  <span className="text-xs text-gray-400">브러시:</span>
                   <input
                     type="range"
                     min="5"
@@ -219,22 +218,46 @@ export const ImageCanvas: React.FC = () => {
                 </Button>
               </>
             )}
-            
+
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowMasks(!showMasks)}
-              className={cn(showMasks && 'bg-yellow-400/10 border-yellow-400/50')}
+              className={cn(showMasks && 'bg-primary-500/10 border-primary-500/50')}
             >
               {showMasks ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-              <span className="hidden sm:inline ml-2">Masks</span>
+              <span className="hidden sm:inline ml-2">마스크</span>
             </Button>
-            
+
             {canvasImage && (
-              <Button variant="secondary" size="sm" onClick={handleDownload}>
-                <Download className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Download</span>
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeBackground()}
+                  disabled={isRemoving || isRemovingBackground}
+                  className={cn(
+                    'text-purple-400 border-purple-500/30 hover:bg-purple-500/10',
+                    (isRemoving || isRemovingBackground) && 'opacity-50'
+                  )}
+                >
+                  {isRemoving || isRemovingBackground ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-500/20 border-t-purple-500 mr-2" />
+                      <span className="hidden sm:inline">처리 중...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Scissors className="h-4 w-4 mr-2" />
+                      <span className="hidden sm:inline">배경 제거</span>
+                    </>
+                  )}
+                </Button>
+                <Button variant="secondary" size="sm" onClick={handleDownload}>
+                  <Download className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">다운로드</span>
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -248,25 +271,43 @@ export const ImageCanvas: React.FC = () => {
         {!image && !isGenerating && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <div className="text-6xl mb-4">🍌</div>
-              <h2 className="text-xl font-medium text-gray-300 mb-2">
-                Welcome to Nano Banana Framework
+              <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500/10 to-accent-500/10 rounded-2xl border border-primary-500/20 mx-auto mb-6">
+                <svg className="w-10 h-10 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-medium text-gray-200 mb-2">
+                AI 이미지 생성 시작하기
               </h2>
-              <p className="text-gray-500 max-w-md">
-                {selectedTool === 'generate' 
-                  ? 'Start by describing what you want to create in the prompt box'
-                  : 'Upload an image to begin editing'
+              <p className="text-gray-400 max-w-md">
+                {selectedTool === 'generate'
+                  ? '프롬프트 패널에서 만들고 싶은 이미지를 설명해주세요'
+                  : '편집할 이미지를 업로드하여 시작하세요'
                 }
               </p>
             </div>
           </div>
         )}
 
-        {isGenerating && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50">
+        {(isGenerating || isRemovingBackground) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#0D0E11]/80 backdrop-blur-sm z-10">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mb-4" />
-              <p className="text-gray-300">Creating your image...</p>
+              <div className="relative">
+                <div className={cn(
+                  "animate-spin rounded-full h-12 w-12 border-2 mb-4",
+                  isRemovingBackground
+                    ? "border-purple-500/20 border-t-purple-500"
+                    : "border-primary-500/20 border-t-primary-500"
+                )} />
+                <div className={cn(
+                  "absolute inset-0 rounded-full blur-xl",
+                  isRemovingBackground ? "bg-purple-500/10" : "bg-primary-500/10"
+                )} />
+              </div>
+              <p className="text-gray-200 font-medium">
+                {isRemovingBackground ? '배경 제거 중...' : '이미지 생성 중...'}
+              </p>
+              <p className="text-gray-400 text-sm mt-1">잠시만 기다려주세요</p>
             </div>
           </div>
         )}
@@ -287,8 +328,8 @@ export const ImageCanvas: React.FC = () => {
             });
           }}
           onMouseDown={handleMouseDown}
-          onMousemove={handleMouseMove}
-          onMouseup={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
           style={{ 
             cursor: selectedTool === 'mask' ? 'crosshair' : 'default' 
           }}
@@ -349,18 +390,18 @@ export const ImageCanvas: React.FC = () => {
           
           <div className="flex items-center space-x-2">
             <span className="text-xs text-gray-500">
-              © 2025 Mark Fulton - 
+              © 2025 Boram -
               <a
-                href="https://www.reinventing.ai/"
+                href="https://www.mysc.co.kr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-yellow-400 hover:text-yellow-300 transition-colors ml-1"
+                className="text-primary-400 hover:text-primary-300 transition-colors ml-1"
               >
-                Reinventing.AI Solutions
+                mysc
               </a>
             </span>
             <span className="text-gray-600 hidden md:inline">•</span>
-            <span className="text-yellow-400 hidden md:inline">⚡</span>
+            <span className="text-primary-400 hidden md:inline">⚡</span>
             <span className="hidden md:inline">Powered by Gemini 2.5 Flash Image</span>
           </div>
         </div>

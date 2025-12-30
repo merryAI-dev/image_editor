@@ -4,6 +4,32 @@ import { GoogleGenAI } from '@google/genai';
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'demo-key';
 const genAI = new GoogleGenAI({ apiKey: API_KEY });
 
+function parseApiError(error: any): string {
+  const message = error?.message || '';
+
+  // Content filtering policy error
+  if (message.includes('content filtering policy') || message.includes('blocked')) {
+    return 'Your request was blocked by content policy. Please try a different prompt that avoids sensitive content.';
+  }
+
+  // Rate limiting
+  if (message.includes('429') || message.includes('rate limit') || message.includes('quota')) {
+    return 'API rate limit exceeded. Please wait a moment and try again.';
+  }
+
+  // Invalid API key
+  if (message.includes('401') || message.includes('API key') || message.includes('unauthorized')) {
+    return 'Invalid API key. Please check your VITE_GEMINI_API_KEY in .env file.';
+  }
+
+  // Network error
+  if (message.includes('network') || message.includes('fetch') || message.includes('ECONNREFUSED')) {
+    return 'Network error. Please check your internet connection and try again.';
+  }
+
+  return message || 'An unexpected error occurred. Please try again.';
+}
+
 export interface GenerationRequest {
   prompt: string;
   referenceImages?: string[]; // base64 array
@@ -43,22 +69,34 @@ export class GeminiService {
       }
 
       const response = await genAI.models.generateContent({
-        model: "gemini-2.5-flash-image-preview",
+        model: "gemini-3-pro-image-preview",
         contents,
       });
 
       const images: string[] = [];
+      const candidates = response?.candidates;
 
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          images.push(part.inlineData.data);
+      if (!candidates || candidates.length === 0) {
+        throw new Error('No response from model');
+      }
+
+      const parts = candidates[0]?.content?.parts;
+      if (parts) {
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            images.push(part.inlineData.data);
+          }
         }
       }
 
+      if (images.length === 0) {
+        throw new Error('No image generated');
+      }
+
       return images;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating image:', error);
-      throw new Error('Failed to generate image. Please try again.');
+      throw new Error(parseApiError(error));
     }
   }
 
@@ -96,22 +134,34 @@ export class GeminiService {
       }
 
       const response = await genAI.models.generateContent({
-        model: "gemini-2.5-flash-image-preview",
+        model: "gemini-3-pro-image-preview",
         contents,
       });
 
       const images: string[] = [];
+      const candidates = response?.candidates;
 
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          images.push(part.inlineData.data);
+      if (!candidates || candidates.length === 0) {
+        throw new Error('No response from model');
+      }
+
+      const parts = candidates[0]?.content?.parts;
+      if (parts) {
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            images.push(part.inlineData.data);
+          }
         }
       }
 
+      if (images.length === 0) {
+        throw new Error('No image generated');
+      }
+
       return images;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error editing image:', error);
-      throw new Error('Failed to edit image. Please try again.');
+      throw new Error(parseApiError(error));
     }
   }
 
@@ -141,15 +191,24 @@ Only segment the specific object or region requested. The mask should be a binar
       ];
 
       const response = await genAI.models.generateContent({
-        model: "gemini-2.5-flash-image-preview",
+        model: "gemini-3-pro-image-preview",
         contents: prompt,
       });
 
-      const responseText = response.candidates[0].content.parts[0].text;
+      const candidates = response?.candidates;
+      if (!candidates || candidates.length === 0) {
+        throw new Error('No response from model');
+      }
+
+      const responseText = candidates[0]?.content?.parts?.[0]?.text;
+      if (!responseText) {
+        throw new Error('No segmentation result');
+      }
+
       return JSON.parse(responseText);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error segmenting image:', error);
-      throw new Error('Failed to segment image. Please try again.');
+      throw new Error(parseApiError(error));
     }
   }
 

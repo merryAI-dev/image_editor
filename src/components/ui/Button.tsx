@@ -3,15 +3,15 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../utils/cn';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500/50 disabled:pointer-events-none disabled:opacity-50 rounded-xl',
   {
     variants: {
       variant: {
-        default: 'bg-yellow-400 text-gray-900 hover:bg-yellow-300 focus-visible:ring-yellow-400',
-        secondary: 'bg-gray-800 text-gray-100 hover:bg-gray-700 focus-visible:ring-gray-600',
-        outline: 'border border-gray-600 bg-transparent text-gray-300 hover:bg-gray-800 hover:text-gray-100',
-        ghost: 'text-gray-400 hover:bg-gray-800 hover:text-gray-100',
-        destructive: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
+        default: 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-black hover:from-yellow-300 hover:to-yellow-400 shadow-lg shadow-yellow-500/25',
+        secondary: 'bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20',
+        outline: 'border border-white/20 bg-white/5 backdrop-blur-md text-white hover:bg-white/10',
+        ghost: 'text-white/70 hover:bg-white/10 hover:text-white',
+        destructive: 'bg-red-500/80 backdrop-blur-md text-white hover:bg-red-500 border border-red-400/30',
       },
       size: {
         default: 'h-10 px-4 py-2',

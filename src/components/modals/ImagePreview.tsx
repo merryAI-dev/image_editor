@@ -1,9 +1,9 @@
 import React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
 
-interface ImagePreviewModalProps {
+interface ImagePreviewProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   imageUrl: string;
@@ -11,12 +11,12 @@ interface ImagePreviewModalProps {
   description?: string;
 }
 
-export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({ 
-  open, 
-  onOpenChange, 
-  imageUrl, 
-  title, 
-  description 
+export const ImagePreview: React.FC<ImagePreviewProps> = ({
+  open,
+  onOpenChange,
+  imageUrl,
+  title,
+  description
 }) => {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>

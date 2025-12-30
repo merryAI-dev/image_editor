@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { geminiService, GenerationRequest, EditRequest } from '../services/geminiService';
+import { geminiService, GenerationRequest, EditRequest } from '../services/geminiApi';
 import { useAppStore } from '../store/useAppStore';
 import { generateId } from '../utils/imageUtils';
 import { Generation, Edit, Asset } from '../types';
@@ -85,6 +85,92 @@ export const useImageGeneration = () => {
     generate: generateMutation.mutate,
     isGenerating: generateMutation.isPending,
     error: generateMutation.error
+  };
+};
+
+export const useBackgroundRemoval = () => {
+  const {
+    setIsRemovingBackground,
+    setCanvasImage,
+    canvasImage,
+    addEdit,
+    selectedGenerationId,
+    currentProject,
+    setCurrentProject
+  } = useAppStore();
+
+  const removeBackgroundMutation = useMutation({
+    mutationFn: async () => {
+      if (!canvasImage) throw new Error('No image to process');
+
+      const base64Image = canvasImage.includes('base64,')
+        ? canvasImage.split('base64,')[1]
+        : canvasImage;
+
+      // Use Gemini to remove background with a specific prompt
+      const request: GenerationRequest = {
+        prompt: 'Remove the background completely from this image, keep only the main subject/object. Make the background transparent (PNG with alpha channel). Preserve all details of the subject.',
+        referenceImages: [base64Image],
+        temperature: 0.2, // Low temperature for consistent results
+      };
+
+      const images = await geminiService.generateImage(request);
+      return images;
+    },
+    onMutate: () => {
+      setIsRemovingBackground(true);
+    },
+    onSuccess: (images) => {
+      if (images.length > 0) {
+        const outputUrl = `data:image/png;base64,${images[0]}`;
+
+        const outputAssets: Asset[] = [{
+          id: generateId(),
+          type: 'output',
+          url: outputUrl,
+          mime: 'image/png',
+          width: 1024,
+          height: 1024,
+          checksum: images[0].slice(0, 32)
+        }];
+
+        const edit: Edit = {
+          id: generateId(),
+          parentGenerationId: selectedGenerationId || (currentProject?.generations[currentProject.generations.length - 1]?.id || ''),
+          instruction: '배경 제거 (누끼)',
+          outputAssets,
+          timestamp: Date.now()
+        };
+
+        // Create project if none exists
+        if (!currentProject) {
+          const newProject = {
+            id: generateId(),
+            title: 'Untitled Project',
+            generations: [],
+            edits: [edit],
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+          };
+          setCurrentProject(newProject);
+        } else {
+          addEdit(edit);
+        }
+
+        setCanvasImage(outputUrl);
+      }
+      setIsRemovingBackground(false);
+    },
+    onError: (error) => {
+      console.error('Background removal failed:', error);
+      setIsRemovingBackground(false);
+    }
+  });
+
+  return {
+    removeBackground: removeBackgroundMutation.mutate,
+    isRemoving: removeBackgroundMutation.isPending,
+    error: removeBackgroundMutation.error
   };
 };
 

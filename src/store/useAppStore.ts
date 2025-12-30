@@ -35,7 +35,8 @@ interface AppState {
   showPromptPanel: boolean;
   
   // UI state
-  selectedTool: 'generate' | 'edit' | 'mask';
+  selectedTool: 'generate' | 'edit' | 'mask' | 'removeBackground';
+  isRemovingBackground: boolean;
   
   // Actions
   setCurrentProject: (project: Project | null) => void;
@@ -69,7 +70,8 @@ interface AppState {
   
   setShowPromptPanel: (show: boolean) => void;
   
-  setSelectedTool: (tool: 'generate' | 'edit' | 'mask') => void;
+  setSelectedTool: (tool: 'generate' | 'edit' | 'mask' | 'removeBackground') => void;
+  setIsRemovingBackground: (removing: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -98,8 +100,9 @@ export const useAppStore = create<AppState>()(
       showHistory: true,
       
       showPromptPanel: true,
-      
+
       selectedTool: 'generate',
+      isRemovingBackground: false,
       
       // Actions
       setCurrentProject: (project) => set({ currentProject: project }),
@@ -158,6 +161,7 @@ export const useAppStore = create<AppState>()(
       setShowPromptPanel: (show) => set({ showPromptPanel: show }),
       
       setSelectedTool: (tool) => set({ selectedTool: tool }),
+      setIsRemovingBackground: (removing) => set({ isRemovingBackground: removing }),
     }),
     { name: 'nano-banana-store' }
   )

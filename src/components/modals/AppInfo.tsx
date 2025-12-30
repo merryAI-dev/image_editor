@@ -1,22 +1,22 @@
 import React from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { X, ExternalLink, Lightbulb, Download } from 'lucide-react';
-import { Button } from './ui/Button';
+import { Button } from '../ui/Button';
 
-interface InfoModalProps {
+interface AppInfoProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export const InfoModal: React.FC<InfoModalProps> = ({ open, onOpenChange }) => {
+export const AppInfo: React.FC<AppInfoProps> = ({ open, onOpenChange }) => {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-lg p-6 w-full max-w-4xl z-50">
+        <Dialog.Content className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#16171D] border border-[#25262D] rounded-lg p-6 w-full max-w-4xl z-50 shadow-2xl">
           <div className="flex items-center justify-between mb-4">
-            <Dialog.Title className="text-lg font-semibold text-gray-100">
-              About Nano Banana AI Image Editor
+            <Dialog.Title className="text-lg font-semibold text-yellow-400 font-pixel">
+              🍌 BananaEditor 정보
             </Dialog.Title>
             <Dialog.Close asChild>
               <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -28,16 +28,10 @@ export const InfoModal: React.FC<InfoModalProps> = ({ open, onOpenChange }) => {
           <div className="space-y-4">
             <div className="space-y-3 text-sm text-gray-300">
               <p>
-                Developed by{' '}
-                <a
-                  href="https://markfulton.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-yellow-400 hover:text-yellow-300 transition-colors font-semibold"
-                >
-                  Mark Fulton
-                  <ExternalLink className="h-3 w-3 inline ml-1" />
-                </a>
+                개발자:{' '}
+                <span className="text-primary-400 font-semibold">
+                  Boram
+                </span>
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

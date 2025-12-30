@@ -2,9 +2,9 @@ import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cn } from './utils/cn';
 import { Header } from './components/Header';
-import { PromptComposer } from './components/PromptComposer';
-import { ImageCanvas } from './components/ImageCanvas';
-import { HistoryPanel } from './components/HistoryPanel';
+import { PromptPanel } from './components/prompt/PromptPanel';
+import { EditorCanvas } from './components/canvas/EditorCanvas';
+import { GenerationHistory } from './components/GenerationHistory';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useAppStore } from './store/useAppStore';
 
@@ -38,18 +38,18 @@ function AppContent() {
   }, [setShowPromptPanel, setShowHistory]);
 
   return (
-    <div className="h-screen bg-gray-900 text-gray-100 flex flex-col font-sans">
+    <div className="h-screen bg-[#0D0E11] text-gray-100 flex flex-col font-sans antialiased">
       <Header />
-      
+
       <div className="flex-1 flex overflow-hidden">
         <div className={cn("flex-shrink-0 transition-all duration-300", !showPromptPanel && "w-8")}>
-          <PromptComposer />
+          <PromptPanel />
         </div>
         <div className="flex-1 min-w-0">
-          <ImageCanvas />
+          <EditorCanvas />
         </div>
         <div className="flex-shrink-0">
-          <HistoryPanel />
+          <GenerationHistory />
         </div>
       </div>
     </div>
