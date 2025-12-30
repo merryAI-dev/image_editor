@@ -363,9 +363,22 @@ src/
 
 ---
 
+## Contributors
+
+이 프로젝트에 기여해주신 분들입니다.
+
+| | 이름 | GitHub |
+|---|------|--------|
+| 👨‍💻 | **Boram** | [@merryAI-dev](https://github.com/merryAI-dev) |
+| 👨‍💻 | **Minwook** | [@Boram.minwook](https://github.com/Boram.minwook) |
+
+---
+
 ## 문의 및 기여
 
 버그 리포트나 기능 제안은 [GitHub Issues](https://github.com/merryAI-dev/image_editor/issues)에 등록해주세요.
+
+기여를 원하시면 Pull Request를 보내주세요!
 
 ---
 
